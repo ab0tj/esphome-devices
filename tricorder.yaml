@@ -1,0 +1,126 @@
+esphome:
+  name: ${device_name}
+  platform: ESP32
+  board: nodemcu-32s
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: ESPHome ${friendly_name}
+    password: !secret fallback_ap_password
+
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  password: !secret api_password
+
+ota:
+  password: !secret ota_password
+  
+i2c:
+
+sensor:
+  - platform: dht
+    pin: GPIO15
+    model: AM2302
+    update_interval: 3s
+    temperature:
+      name: ${area_name} Temperature
+      accuracy_decimals: 1
+      filters:
+      # Median filter to toss out the obviously incorrect readings that happen sometimes
+      - median:
+          window_size: 5
+          send_every: 5
+      # Only send value when it changes
+      - delta: 0.01
+    humidity:
+      name: ${area_name} Humidity
+      accuracy_decimals: 1
+      filters:
+      - median:
+          window_size: 5
+          send_every: 5
+      - delta: 0.01
+  - platform: bh1750
+    name: ${area_name} Lux
+    update_interval: 15s
+    filters:
+      - delta: 0.01
+  # Uptime sensor.
+  - platform: uptime
+    name: ${friendly_name} Uptime
+# WiFi Signal sensor.
+  - platform: wifi_signal
+    name: ${friendly_name} WiFi Signal
+    filters:
+    - delta: 0.01
+    - throttle: 60s
+
+output:
+  - platform: gpio
+    id: green_led
+    pin:
+      number: GPIO16
+      inverted: true
+  - platform: gpio
+    id: red_led
+    pin:
+      number: GPIO17
+      inverted: true
+
+light:
+  - platform: binary
+    output: green_led
+    name: ${friendly_name} Green LED
+    id: green_light
+  - platform: binary
+    output: red_led
+    name: ${friendly_name} Red LED
+    id: red_light
+
+status_led:
+  pin: GPIO2
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      inverted: true
+    name: ${friendly_name} IO0 Button
+  - platform: gpio
+    device_class: motion
+    pin: GPIO34
+    name: ${friendly_name} Motion
+    on_press:
+      light.turn_on: red_light
+    on_release:
+      light.turn_off: red_light
+  - platform: status
+    name: ${friendly_name} Status
+      
+text_sensor:
+# Expose ESPHome version as sensor.
+  - platform: version
+    name: ${friendly_name} ESPHome Version
+    
+  - platform: wifi_info
+    ip_address:
+      name: ${friendly_name} IP Address
+    ssid:
+      name: ${friendly_name} SSID
+    bssid:
+      name: ${friendly_name} BSSID
+      
+# Exposed switches.
+# Switch to restart the sensor.   
+switch:
+  - platform: restart
+    name: ${friendly_name} Restart

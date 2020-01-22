@@ -1,0 +1,150 @@
+esphome:
+  name: ${id_name}
+  platform: ESP8266
+  board: esp8285
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: ESPHome ${plug_name}
+    password: !secret fallback_ap_password
+
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  password: !secret api_password
+
+ota:
+  password: !secret ota_password
+
+# Sync time with Home Assistant
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO3
+      inverted: true
+    id: button
+    on_press:
+      - switch.toggle: relay
+    on_click:
+      min_length: 5s
+      max_length: 10s
+      then:
+        - switch.turn_on: esp_restart
+
+switch:
+  - platform: restart
+    name: Reboot ${plug_name}
+    id: esp_restart
+
+  - platform: gpio
+    name: ${device_name}
+    id: relay
+    pin: GPIO14
+    on_turn_on:
+      - output.turn_on: blue_led
+    on_turn_off:
+      - output.turn_off: blue_led
+
+output:
+  - platform: gpio
+    id: blue_led
+    pin:
+      number: GPIO13
+      inverted: true
+
+status_led:
+  pin:
+    number: GPIO1
+    inverted: true
+
+sensor:
+  - platform: hlw8012
+    sel_pin:
+      number: GPIO12
+      inverted: true
+    cf_pin: GPIO4
+    cf1_pin: GPIO5
+    current_resistor: 0.001
+    voltage_divider: 2001
+    change_mode_every: 3
+    update_interval: 10s
+    current:
+      name: ${device_name} Current
+      filters:
+      - delta: 0.01
+      - calibrate_linear:
+        - 0.0 -> 0.0
+        - ${current_calibration_1}
+        - ${current_calibration_2}
+        - ${current_calibration_3}
+        - ${current_calibration_4}
+        - ${current_calibration_5}
+      - lambda: if (x < 0.01) return 0.0; else return x;
+    voltage:
+      name: ${device_name} Voltage
+      filters:
+      - delta: 0.01
+      - calibrate_linear:
+        - 0.0 -> 0.0
+        - ${voltage_calibration_1}
+        - ${voltage_calibration_2}
+        - ${voltage_calibration_3}
+        - ${voltage_calibration_4}
+        - ${voltage_calibration_5}
+    power:
+      name: ${device_name} Power
+      id: power
+      filters:
+      - delta: 0.01
+      - calibrate_linear:
+        - 0.0 -> 0.0
+        - ${power_calibration_1}
+        - ${power_calibration_2}
+        - ${power_calibration_3}
+        - ${power_calibration_4}
+        - ${power_calibration_5}
+      - lambda: if (x < 1.0) return 0.0; else return x;
+  - platform: total_daily_energy
+    name: ${device_name} Daily Energy
+    power_id: power
+    filters:
+      # Convert Wh to kWh
+      - multiply: 0.001
+      - delta: 0.01
+    unit_of_measurement: kWh
+  
+# Uptime sensor.
+  - platform: uptime
+    name: ${plug_name} Uptime
+# WiFi Signal sensor.
+  - platform: wifi_signal
+    name: ${plug_name} WiFi Signal
+    filters:
+      - delta: 0.01
+      - throttle: 60s
+
+
+text_sensor:
+# Expose ESPHome version as sensor.
+  - platform: version
+    name: ${plug_name} ESPHome Version
+    
+  - platform: wifi_info
+    ip_address:
+      name: ${plug_name} IP Address
+    ssid:
+      name: ${plug_name} SSID
+    bssid:
+      name: ${plug_name} BSSID
