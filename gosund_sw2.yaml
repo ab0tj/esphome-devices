@@ -88,7 +88,7 @@ light:
 
 custom_component:
   - lambda: |-
-      auto uart_out = new GosundSW2Uart(id(uart_bus), id(dining_room_light));
+      auto uart_out = new GosundSW2Uart(id(uart_bus), id(${device_name}));
       return {uart_out};
     
 status_led:
