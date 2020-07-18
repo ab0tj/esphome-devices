@@ -1,0 +1,88 @@
+esphome:
+  name: ${device_name}
+  platform: ESP8266
+  board: esp_wroom_02
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: ESPHome ${friendly_name}
+    password: !secret fallback_ap_password
+
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  password: !secret api_password
+
+ota:
+  password: !secret ota_password
+
+status_led:
+  pin:
+    number: GPIO4
+    inverted: true
+
+sensor:
+  - platform: dht
+    pin: GPIO2
+    model: AM2302
+    update_interval: 3s
+    temperature:
+      name: ${area_name} Temperature
+      accuracy_decimals: 1
+      filters:
+      # Median filter to toss out the obviously incorrect readings that happen sometimes
+      - median:
+          window_size: 5
+          send_every: 5
+      # Only send value when it changes
+      - delta: 0.01
+    humidity:
+      name: ${area_name} Humidity
+      accuracy_decimals: 1
+      filters:
+      - median:
+          window_size: 5
+          send_every: 5
+      - delta: 0.01
+
+# Uptime sensor.
+  - platform: uptime
+    name: ${friendly_name} Uptime
+# WiFi Signal sensor.
+  - platform: wifi_signal
+    name: ${friendly_name} WiFi Signal
+    filters:
+    - delta: 0.01
+    - throttle: 60s
+      
+# Status sensor
+binary_sensor:
+  - platform: status
+    name: ${friendly_name} Status
+
+text_sensor:
+# Expose ESPHome version as sensor.
+  - platform: version
+    name: ${friendly_name} ESPHome Version
+    
+  - platform: wifi_info
+    ip_address:
+      name: ${friendly_name} IP Address
+    ssid:
+      name: ${friendly_name} SSID
+    bssid:
+      name: ${friendly_name} BSSID
+      
+# Exposed switches.
+# Switch to restart the sensor.   
+switch:
+  - platform: restart
+    name: ${friendly_name} Restart
