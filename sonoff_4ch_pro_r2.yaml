@@ -1,3 +1,6 @@
+# NOTE: This configuration does not implement control of the relays using the buttons.
+# This was on purpose in my case, to allow Home Assistant automations instead.
+
 # Basic Config
 esphome:
   name: ${device_name}
