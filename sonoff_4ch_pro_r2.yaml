@@ -22,16 +22,6 @@ api:
 ota:
   password: !secret ota_password
 
-# Uptime sensor.
-  - platform: uptime
-    name: ${friendly_name} Uptime
-# WiFi Signal sensor.
-  - platform: wifi_signal
-    name: ${friendly_name} WiFi Signal
-    filters:
-    - delta: 0.01
-    - throttle: 60s
-
 text_sensor:
 # Expose ESPHome version as sensor.
   - platform: version
@@ -44,6 +34,17 @@ text_sensor:
       name: ${friendly_name} SSID
     bssid:
       name: ${friendly_name} BSSID
+
+sensor:
+# Uptime sensor.
+  - platform: uptime
+    name: ${friendly_name} Uptime
+# WiFi Signal sensor.
+  - platform: wifi_signal
+    name: ${friendly_name} WiFi Signal
+    filters:
+    - delta: 0.01
+    - throttle: 60s
     
 # Device Specific Config
 binary_sensor:
