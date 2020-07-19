@@ -1,0 +1,146 @@
+# NOTE: This configuration does not implement control of the relays using the buttons.
+# This was on purpose in my case, to allow Home Assistant automations instead.
+# It also only allows one relay to be on at any time
+
+# Basic Config
+esphome:
+  name: ${device_name}
+  platform: ESP8266
+  board: esp01_1m
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: ESPHome ${friendly_name}
+    password: !secret fallback_ap_password
+
+# Enable logger
+logger:
+
+# Enable Home Assistant API
+api:
+  password: !secret api_password
+
+ota:
+  password: !secret ota_password
+
+text_sensor:
+# Expose ESPHome version as sensor.
+  - platform: version
+    name: ${friendly_name} ESPHome Version
+    
+  - platform: wifi_info
+    ip_address:
+      name: ${friendly_name} IP Address
+    ssid:
+      name: ${friendly_name} SSID
+    bssid:
+      name: ${friendly_name} BSSID
+
+sensor:
+# Uptime sensor.
+  - platform: uptime
+    name: ${friendly_name} Uptime
+# WiFi Signal sensor.
+  - platform: wifi_signal
+    name: ${friendly_name} WiFi Signal
+    filters:
+    - delta: 0.01
+    - throttle: 60s
+    
+# Device Specific Config
+status_led:
+  pin:
+    number: GPIO13
+    inverted: True
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode: INPUT_PULLUP
+      inverted: True
+    name: "${friendly_name} Button 1"
+  - platform: gpio
+    pin:
+      number: GPIO9
+      mode: INPUT_PULLUP
+      inverted: True
+    name: "${friendly_name} Button 2"
+  - platform: gpio
+    pin:
+      number: GPIO10
+      mode: INPUT_PULLUP
+      inverted: True
+    name: "${friendly_name} Button 3"
+  - platform: gpio
+    pin:
+      number: GPIO14
+      mode: INPUT_PULLUP
+      inverted: True
+    name: "${friendly_name} Button 4"
+  - platform: status
+    name: "${friendly_name} Status"
+
+switch:
+  - platform: gpio
+    name: "${relay_1_name}"
+    pin: GPIO12
+    id: "relay_1"
+    on_turn_on:
+      - switch.turn_off: relay_2
+      - switch.turn_off: relay_3
+      - switch.turn_off: relay_4
+      - script.execute: failsafe
+    on_turn_off:
+      - script.stop: failsafe
+    restore_mode: ALWAYS_OFF
+  - platform: gpio
+    name: "${relay_2_name}"
+    pin: GPIO5
+    id: "relay_2"
+    on_turn_on:
+      - switch.turn_off: relay_1
+      - switch.turn_off: relay_3
+      - switch.turn_off: relay_4
+      - script.execute: failsafe
+    on_turn_off:
+      - script.stop: failsafe
+    restore_mode: ALWAYS_OFF
+  - platform: gpio
+    name: "${relay_3_name}"
+    pin: GPIO4
+    id: "relay_3"
+    on_turn_on:
+      - switch.turn_off: relay_1
+      - switch.turn_off: relay_2
+      - switch.turn_off: relay_4
+      - script.execute: failsafe
+    on_turn_off:
+      - script.stop: failsafe
+    restore_mode: ALWAYS_OFF
+  - platform: gpio
+    name: "${relay_4_name}"
+    pin: GPIO15
+    id: "relay_4"
+    on_turn_on:
+      - switch.turn_off: relay_1
+      - switch.turn_off: relay_2
+      - switch.turn_off: relay_3
+      - script.execute: failsafe
+    on_turn_off:
+      - script.stop: failsafe
+    restore_mode: ALWAYS_OFF
+  - platform: restart
+    name: ${friendly_name} Restart
+
+script:
+  - id: failsafe
+    then:
+      - delay: ${timeout}
+      - switch.turn_off: relay_1
+      - switch.turn_off: relay_2
+      - switch.turn_off: relay_3
+      - switch.turn_off: relay_4
