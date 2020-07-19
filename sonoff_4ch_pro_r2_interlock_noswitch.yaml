@@ -1,3 +1,7 @@
+# NOTE: This configuration does not implement control of the relays using the buttons.
+# This was on purpose in my case, to allow Home Assistant automations instead.
+# It also only allows one relay to be on at any time
+
 # Basic Config
 esphome:
   name: ${device_name}
@@ -59,36 +63,24 @@ binary_sensor:
       mode: INPUT_PULLUP
       inverted: True
     name: "${friendly_name} Button 1"
-    on_press: 
-      then:
-        switch.toggle: relay_1
   - platform: gpio
     pin:
       number: GPIO9
       mode: INPUT_PULLUP
       inverted: True
     name: "${friendly_name} Button 2"
-    on_press: 
-      then:
-        switch.toggle: relay_2
   - platform: gpio
     pin:
       number: GPIO10
       mode: INPUT_PULLUP
       inverted: True
     name: "${friendly_name} Button 3"
-    on_press: 
-      then:
-        switch.toggle: relay_3
   - platform: gpio
     pin:
       number: GPIO14
       mode: INPUT_PULLUP
       inverted: True
     name: "${friendly_name} Button 4"
-    on_press: 
-      then:
-        switch.toggle: relay_4
   - platform: status
     name: "${friendly_name} Status"
 
@@ -97,17 +89,37 @@ switch:
     name: "${relay_1_name}"
     pin: GPIO12
     id: "relay_1"
+    on_turn_on:
+      - switch.turn_off: relay_2
+      - switch.turn_off: relay_3
+      - switch.turn_off: relay_4
+    restore_mode: ALWAYS_OFF
   - platform: gpio
     name: "${relay_2_name}"
     pin: GPIO5
     id: "relay_2"
+    on_turn_on:
+      - switch.turn_off: relay_1
+      - switch.turn_off: relay_3
+      - switch.turn_off: relay_4
+    restore_mode: ALWAYS_OFF
   - platform: gpio
     name: "${relay_3_name}"
     pin: GPIO4
     id: "relay_3"
+    on_turn_on:
+      - switch.turn_off: relay_1
+      - switch.turn_off: relay_2
+      - switch.turn_off: relay_4
+    restore_mode: ALWAYS_OFF
   - platform: gpio
     name: "${relay_4_name}"
     pin: GPIO15
     id: "relay_4"
+    on_turn_on:
+      - switch.turn_off: relay_1
+      - switch.turn_off: relay_2
+      - switch.turn_off: relay_3
+    restore_mode: ALWAYS_OFF
   - platform: restart
     name: ${friendly_name} Restart
