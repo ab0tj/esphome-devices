@@ -28,6 +28,7 @@ api:
   reboot_timeout: 0s
 
 ota:
+  platform: esphome
   password: !secret ota_password
 
 globals:
@@ -88,7 +89,7 @@ light:
 
 custom_component:
   - lambda: |-
-      auto uart_out = new GosundSW2Uart(id(uart_bus), id(${device_name}));
+      auto uart_out = new GosundSW2Uart(id(uart_bus), id(dining_room_light));
       return {uart_out};
     
 status_led:

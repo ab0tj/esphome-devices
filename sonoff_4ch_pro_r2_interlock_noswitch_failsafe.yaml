@@ -24,6 +24,7 @@ api:
   password: !secret api_password
 
 ota:
+  platform: esphome
   password: !secret ota_password
 
 text_sensor:
@@ -90,10 +91,16 @@ switch:
     pin: GPIO12
     id: "relay_1"
     on_turn_on:
-      - switch.turn_off: relay_2
-      - switch.turn_off: relay_3
-      - switch.turn_off: relay_4
-      - script.execute: failsafe
+      if:
+        condition:
+          switch.is_on: switches_disabled
+        then:
+          - switch.turn_off: relay_1
+        else:
+          - switch.turn_off: relay_2
+          - switch.turn_off: relay_3
+          - switch.turn_off: relay_4
+          - script.execute: failsafe
     on_turn_off:
       - script.stop: failsafe
     restore_mode: ALWAYS_OFF
@@ -102,10 +109,16 @@ switch:
     pin: GPIO5
     id: "relay_2"
     on_turn_on:
-      - switch.turn_off: relay_1
-      - switch.turn_off: relay_3
-      - switch.turn_off: relay_4
-      - script.execute: failsafe
+      if:
+        condition:
+          switch.is_on: switches_disabled
+        then:
+          - switch.turn_off: relay_2
+        else:
+          - switch.turn_off: relay_1
+          - switch.turn_off: relay_3
+          - switch.turn_off: relay_4
+          - script.execute: failsafe
     on_turn_off:
       - script.stop: failsafe
     restore_mode: ALWAYS_OFF
@@ -114,10 +127,16 @@ switch:
     pin: GPIO4
     id: "relay_3"
     on_turn_on:
-      - switch.turn_off: relay_1
-      - switch.turn_off: relay_2
-      - switch.turn_off: relay_4
-      - script.execute: failsafe
+      if:
+        condition:
+          switch.is_on: switches_disabled
+        then:
+          - switch.turn_off: relay_3
+        else:
+          - switch.turn_off: relay_1
+          - switch.turn_off: relay_2
+          - switch.turn_off: relay_4
+          - script.execute: failsafe
     on_turn_off:
       - script.stop: failsafe
     restore_mode: ALWAYS_OFF
@@ -126,13 +145,29 @@ switch:
     pin: GPIO15
     id: "relay_4"
     on_turn_on:
-      - switch.turn_off: relay_1
-      - switch.turn_off: relay_2
-      - switch.turn_off: relay_3
-      - script.execute: failsafe
+      if:
+        condition:
+          switch.is_on: switches_disabled
+        then:
+          - switch.turn_off: relay_4
+        else:
+          - switch.turn_off: relay_1
+          - switch.turn_off: relay_2
+          - switch.turn_off: relay_3
+          - script.execute: failsafe
     on_turn_off:
       - script.stop: failsafe
     restore_mode: ALWAYS_OFF
+  - platform: template
+    name: Disable ${friendly_name} Switches
+    id: switches_disabled
+    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: true
+    turn_on_action:
+      - switch.turn_off: relay_1
+      - switch.turn_off: relay_2
+      - switch.turn_off: relay_3
+      - switch.turn_off: relay_4
   - platform: restart
     name: ${friendly_name} Restart
 

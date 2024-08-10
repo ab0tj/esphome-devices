@@ -1,0 +1,95 @@
+esphome:
+  name: ${device_name}
+  platform: ESP8266
+  board: d1_mini
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: ESPHome ${friendly_name}
+    password: !secret fallback_ap_password
+
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  password: !secret api_password
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+sensor:
+  # Uptime sensor.
+  - platform: uptime
+    name: ${friendly_name} Uptime
+# WiFi Signal sensor.
+  - platform: wifi_signal
+    name: ${friendly_name} WiFi Signal
+    filters:
+    - delta: 0.01
+    - throttle: 60s
+
+binary_sensor:
+  - platform: status
+    name: ${friendly_name} Status
+
+# Exposed switches.
+# Switch to restart the sensor.   
+switch:
+  - platform: restart
+    name: ${friendly_name} Restart
+  - platform: gpio
+    pin:
+      number: D1
+      inverted: yes
+    id: up
+    restore_mode: always_off
+  - platform: gpio
+    pin:
+      number: D2
+      inverted: yes
+    id: down
+    restore_mode: always_off
+  - platform: template
+    name: ${friendly_name} Up
+    icon: "mdi:arrow-up-bold-box-outline"
+    turn_on_action:
+    - switch.turn_on: up
+    - delay: 200ms
+    - switch.turn_off: up
+  - platform: template
+    name: ${friendly_name} Down
+    icon: "mdi:arrow-down-bold-box-outline"
+    turn_on_action:
+    - switch.turn_on: down
+    - delay: 200ms
+    - switch.turn_off: down
+  - platform: template
+    name: ${friendly_name} Stop
+    icon: "mdi:stop"
+    turn_on_action:
+    - switch.turn_on: up
+    - switch.turn_on: down
+    - delay: 200ms
+    - switch.turn_off: up
+    - switch.turn_off: down
+
+text_sensor:
+# Expose ESPHome version as sensor.
+  - platform: version
+    name: ${friendly_name} ESPHome Version
+    
+  - platform: wifi_info
+    ip_address:
+      name: ${friendly_name} IP Address
+    ssid:
+      name: ${friendly_name} SSID
+    bssid:
+      name: ${friendly_name} BSSID

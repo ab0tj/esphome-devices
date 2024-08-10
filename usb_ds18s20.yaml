@@ -22,6 +22,7 @@ api:
   password: !secret api_password
 
 ota:
+  platform: esphome
   password: !secret ota_password
 
 status_led:
@@ -29,14 +30,14 @@ status_led:
     number: GPIO4
     inverted: true
 
-dallas:
-  pin: GPIO2
-  update_interval: 3s
+one_wire:
+  - platform: gpio
+    pin: GPIO2
 
 sensor:
-  - platform: dallas
+  - platform: dallas_temp
     name: ${area_name} Temperature
-    index: 0
+    update_interval: 3s
     filters:
     # Median filter to toss out the obviously incorrect readings that happen sometimes
     - median:

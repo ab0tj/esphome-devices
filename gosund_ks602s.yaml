@@ -24,6 +24,7 @@ api:
   reboot_timeout: 0s
 
 ota:
+  platform: esphome
   password: !secret ota_password
 
 binary_sensor:
@@ -39,6 +40,8 @@ binary_sensor:
       max_length: 10s
       then:
         - switch.turn_on: ${device_name}_restart
+    filters:
+      - delayed_off: 250ms
 
 switch:
   - platform: restart
