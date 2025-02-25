@@ -1,6 +1,6 @@
 esphome:
   name: ${device_name}
-  platform: ESP8266
+esp8266:
   board: d1_mini
   on_boot:
       then:
@@ -40,7 +40,8 @@ logger:
 
 # Enable Home Assistant API
 api:
-  password: !secret api_password
+  encryption:
+    key: !secret api_key
 
 ota:
   platform: esphome

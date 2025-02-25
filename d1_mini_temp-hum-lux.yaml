@@ -26,7 +26,36 @@ ota:
   platform: esphome
   password: !secret ota_password
 
+i2c:
+
 sensor:
+  - platform: dht
+    pin: D7
+    model: AM2302
+    update_interval: 3s
+    temperature:
+      name: ${area_name} Temperature
+      accuracy_decimals: 1
+      filters:
+      # Median filter to toss out the obviously incorrect readings that happen sometimes
+      - median:
+          window_size: 5
+          send_every: 5
+      # Only send value when it changes
+      - delta: 0.01
+    humidity:
+      name: ${area_name} Humidity
+      accuracy_decimals: 1
+      filters:
+      - median:
+          window_size: 5
+          send_every: 5
+      - delta: 0.01
+  - platform: bh1750
+    name: ${area_name} Lux
+    update_interval: 15s
+    filters:
+      - delta: 0.01
   # Uptime sensor.
   - platform: uptime
     name: ${friendly_name} Uptime
@@ -37,50 +66,11 @@ sensor:
     - delta: 0.01
     - throttle: 60s
 
-binary_sensor:
-  - platform: status
-    name: ${friendly_name} Status
-
 # Exposed switches.
 # Switch to restart the sensor.   
 switch:
   - platform: restart
     name: ${friendly_name} Restart
-  - platform: gpio
-    pin:
-      number: D1
-      inverted: yes
-    id: up
-    restore_mode: always_off
-  - platform: gpio
-    pin:
-      number: D2
-      inverted: yes
-    id: down
-    restore_mode: always_off
-  - platform: template
-    name: ${friendly_name} Up
-    icon: "mdi:arrow-up-bold-box-outline"
-    turn_on_action:
-    - switch.turn_on: up
-    - delay: 200ms
-    - switch.turn_off: up
-  - platform: template
-    name: ${friendly_name} Down
-    icon: "mdi:arrow-down-bold-box-outline"
-    turn_on_action:
-    - switch.turn_on: down
-    - delay: 200ms
-    - switch.turn_off: down
-  - platform: template
-    name: ${friendly_name} Stop
-    icon: "mdi:stop"
-    turn_on_action:
-    - switch.turn_on: up
-    - switch.turn_on: down
-    - delay: 200ms
-    - switch.turn_off: up
-    - switch.turn_off: down
 
 text_sensor:
 # Expose ESPHome version as sensor.
