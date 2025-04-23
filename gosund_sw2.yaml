@@ -32,6 +32,13 @@ ota:
   platform: esphome
   password: !secret ota_password
 
+external_components:
+  - source:
+      type: git
+      url: https://github.com/robertklep/esphome-custom-component
+    components: [ custom, custom_component ]
+# Thank you, Robert!
+
 globals:
   id: set_by_touch
   type: bool
@@ -90,7 +97,7 @@ light:
 
 custom_component:
   - lambda: |-
-      auto uart_out = new GosundSW2Uart(id(uart_bus), id(dining_room_light));
+      auto uart_out = new GosundSW2Uart(id(uart_bus), id(${device_name}));
       return {uart_out};
     
 status_led:
